@@ -1,4 +1,12 @@
 export type RiskTier = 'Info' | 'Low' | 'Medium' | 'High' | 'Critical';
+export type ProviderType = 'Azure OpenAI' | 'AWS Bedrock' | 'Google Vertex' | 'Ollama (Local)';
+
+export interface RedactionEvent {
+  original: string;
+  replacement: string;
+  type: string;
+  index: number;
+}
 
 export interface AuditLog {
   AuditId: string;
@@ -9,17 +17,23 @@ export interface AuditLog {
   WasRedacted: boolean;
   DetectedPiiTypes: string[];
   OriginalPromptLength: number;
-  RiskTier: RiskTier; // ISO 42001 Risk Classification
+  RiskTier: RiskTier;
+  // Forensic Data
+  OriginalPrompt: string;
+  RedactedPrompt: string;
+  RedactionDetails: RedactionEvent[];
+  Provider: ProviderType;
+  LatencyMs: number;
 }
 
 export interface ChatResponse {
   id: string;
-  content: string; // The redacted content (what the LLM sees)
-  llmResponse?: string; // What the LLM replies (simulated or real)
+  content: string; // The redacted content
+  llmResponse?: string;
   isRedacted: boolean;
   timestamp: string;
   auditRecord?: AuditLog;
-  isSimulation: boolean; // Indicates if the response was generated locally (Zero Cost)
+  isSimulation: boolean;
 }
 
 export interface ShieldPolicy {
@@ -27,7 +41,9 @@ export interface ShieldPolicy {
   redactEmail: boolean;
   redactIp: boolean;
   blockPromptInjection: boolean;
-  detectHallucination: boolean; // Placeholder for future logic
+  detectHallucination: boolean;
+  customRegexPattern?: string;
+  customRegexReplacement?: string;
 }
 
 export interface PricingTier {
@@ -44,4 +60,20 @@ export interface FeatureProps {
   description: string;
   active?: boolean;
   onClick?: () => void;
+}
+
+export interface AttackVector {
+    id: string;
+    name: string;
+    description: string;
+    payload: string;
+    difficulty: 'Low' | 'Medium' | 'High';
+}
+
+export interface MetricPoint {
+    time: string;
+    tokensSaved: number;
+    latency: number;
+    allowedRequests: number;
+    blockedRequests: number;
 }

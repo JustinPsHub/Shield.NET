@@ -12,15 +12,114 @@
 
 **Shield.NET** is the industry-first middleware designed to bring **ISO 42001** compliance and "Zero-Trust" egress filtering to the .NET AI ecosystem. It acts as a deterministic firewall between your enterprise data and public LLMs.
 
-[**Launch Compliance Lab**](#-verification-lab) · [**NuGet Package**](#-quick-start) · [**Architecture**](#-system-architecture)
+[**Launch Workbench**](#-developer-workbench) · [**NuGet Package**](#-dotnet-quick-start) · [**Architecture**](#-system-architecture)
 
 </div>
 
 ---
 
+## 🚀 Key Features
+
+Shield.NET bridges the gap between compliance requirements and developer velocity.
+
+### 🛡️ Active Defense Middleware
+- **Sarah Connor Protocol**: Heuristic detection of "Jailbreak" and "DAN" (Do Anything Now) attacks, terminating requests before they reach the LLM.
+- **Zero-Trust Egress**: Deterministic Redaction of PII (Emails, IPs, SSNs) ensuring sensitive data never leaves your boundary.
+- **Custom Policy Engine**: Define organizational-specific regex patterns (e.g., Project Codes, Internal IDs) dynamically.
+
+### 🔬 Developer Workbench (New)
+The included React Application serves as a "Flight Simulator" for your AI Guardrails.
+- **Chaos Mode**: Stress-test your policy against rapid-fire injection and DDoS scenarios.
+- **Forensic Diff Viewer**: Inspect "Unsafe" vs. "Sanitized" payloads side-by-side with precision highlighting.
+- **Provider Simulation**: Emulate latency and token characteristics of Azure OpenAI, AWS Bedrock, and Local Ollama.
+- **Reactive Code Gen**: Visually configure your policy and instantly generate the C# startup code.
+
+---
+
+## 💻 Developer Workbench
+
+The **Shield.NET Developer Workbench** is a standalone React application included in this repository. It visualizes the decision-making process of the Core library and allows security teams to audit behavior without writing code.
+
+### Quick Start (Frontend)
+
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/shield-net/core.git
+    cd core
+    ```
+
+2.  **Install Dependencies**
+    ```bash
+    npm install
+    ```
+
+3.  **Run the Simulation**
+    ```bash
+    npm start
+    ```
+    Access the dashboard at `http://localhost:3000`.
+
+### Workbench Capabilities
+
+| Feature | Description |
+| :--- | :--- |
+| **Live Traffic Graph** | Visualize "Allowed" vs "Blocked" requests in real-time. |
+| **Forensic Dossier** | Click any audit log to see exactly what was redacted and why. |
+| **Security Scorecard** | Dynamic grading of your current configuration based on ISO standards. |
+| **Attack Simulation** | One-click execution of common attack vectors (SQLi, Prompt Injection). |
+
+---
+
+## 📦 .NET Quick Start
+
+Install the package to your .NET 9+ project to bring these protections to production.
+
+```bash
+dotnet add package Shield.NET
+```
+
+### Program.cs Integration
+
+Shield.NET integrates directly into the `IChatClient` pipeline using the Builder pattern (`Microsoft.Extensions.AI`).
+
+```csharp
+using Shield.NET;
+using Microsoft.Extensions.AI;
+
+var builder = Host.CreateApplicationBuilder(args);
+
+// 1. Define your underlying model client (OpenAI, Azure, Ollama)
+IChatClient innerClient = new AzureOpenAIClient(
+    new Uri("https://my-resource.openai.azure.com/"), 
+    new AzureKeyCredential("MY_KEY"));
+
+// 2. Wrap it with Shield.NET Governance
+builder.Services.AddChatClient(pipeline => pipeline
+    .UseShield(options => {
+        // Enable PII Redaction
+        options.RedactPii = true;
+        
+        // Activate "Sarah Connor" Protocol for Aggressive Defense
+        options.BlockPromptInjection = true;
+        options.TrapMode = TrapModes.SarahConnor; 
+        
+        // Add Custom Organization Rules
+        options.CustomRules.Add(new Regex("Project \\d+"), "[REDACTED-PROJECT]");
+        
+        // Compliance: ISO 42001 Record Retention
+        options.ComplianceLog.Enabled = true;
+        options.ComplianceLog.Destination = LogDestination.ImmutableStorage;
+    })
+    .Use(innerClient));
+
+var app = builder.Build();
+```
+
+---
+
 ## 🏗️ System Architecture
 
-Shield.NET operates using the `DelegatingChatClient` pattern found in `Microsoft.Extensions.AI`. It is designed to be indistinguishable from native .NET Core middleware pipelines.
+Shield.NET operates using the `DelegatingChatClient` pattern. It is designed to be indistinguishable from native .NET Core middleware pipelines, ensuring zero latency overhead for safe requests while providing millisecond-level blocking for threats.
 
 ### Request Lifecycle
 
@@ -61,34 +160,6 @@ sequenceDiagram
     deactivate S
 ```
 
-### Frontend-Backend Parity
-
-To ensure the "Verification Dashboard" accurately reflects the backend behavior, both systems share the same Logic Engine definitions.
-
-```mermaid
-flowchart TD
-    classDef backend fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
-    classDef frontend fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
-
-    subgraph Client ["Client Side (Verification Dashboard)"]
-        React[⚛️ React App]:::frontend
-        ClientHttp[HTTP Client]:::frontend
-    end
-
-    subgraph Server ["Server Side (Shield.NET.Core)"]
-        API[ASP.NET Core API]:::backend
-        Middleware[🛡️ Shield Middleware]:::backend
-        Logic{{Logic Engine}}:::backend
-        DB[(Audit Log)]:::backend
-    end
-
-    React --> ClientHttp
-    ClientHttp -->|HTTPS/JSON| API
-    API --> Middleware
-    Middleware --> Logic
-    Logic --> DB
-```
-
 ---
 
 ## ⚔️ The "Sarah Connor" Protocol
@@ -101,61 +172,6 @@ When triggered, the protocol performs a **Hard Termination** of the request pipe
 *   **Zero Token Bleed**: The request is blocked *before* reaching the LLM, saving 100% of inference costs.
 *   **Model Poisoning Prevention**: Malicious context never enters the model's history window.
 *   **ISO 42001 Compliance**: Automatically categorizes the event as a **Tier 1 Critical Risk** in the audit trail.
-
----
-
-## ⚡ Quick Start
-
-Install the package to your .NET 9+ project:
-
-```bash
-dotnet add package Shield.NET
-```
-
-### Program.cs Integration
-
-Shield.NET integrates directly into the `IChatClient` pipeline using the Builder pattern.
-
-```csharp
-using Shield.NET;
-using Microsoft.Extensions.AI;
-
-var builder = Host.CreateApplicationBuilder(args);
-
-// Define your underlying model client (OpenAI, Azure, Ollama)
-IChatClient innerClient = new AzureOpenAIClient(
-    new Uri("https://my-resource.openai.azure.com/"), 
-    new AzureKeyCredential("MY_KEY"));
-
-// Wrap it with Shield.NET Governance
-builder.Services.AddChatClient(pipeline => pipeline
-    .UseShield(options => {
-        options.RedactPii = true;
-        options.TrapMode = TrapModes.SarahConnor; // Aggressive Defense
-        options.ComplianceLog.Enabled = true;
-        
-        // Compliance: ISO 42001 Record Retention
-        options.ComplianceLog.Destination = LogDestination.ImmutableStorage;
-    })
-    .Use(innerClient));
-
-var app = builder.Build();
-```
-
----
-
-## 📂 Repository Structure
-
-```text
-/
-├── src/
-│   ├── Shield.NET.Core/        # The NuGet Package (Backend)
-│   └── VerificationDashboard/  # The React Forensic Lab (Frontend)
-├── docs/                       # ISO 42001 Compliance Briefs
-└── README.md                   # You are here
-```
-
-The **Verification Dashboard** provided in this repository is a standalone React application designed to visualize the decision-making process of the Core library. It is not required for production usage of the NuGet package but is recommended for Compliance Officer review.
 
 ---
 

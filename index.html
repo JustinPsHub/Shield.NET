@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -33,6 +34,9 @@
               sans: ['Inter', 'system-ui', 'sans-serif'],
               mono: ['Fira Code', 'Consolas', 'Monaco', 'monospace'],
             },
+            animation: {
+                'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            }
           },
         },
       }
@@ -47,6 +51,44 @@
       }
       .code-glow {
         text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+      }
+
+      /* CRT Effects */
+      .crt-container {
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .crt-overlay::before {
+        content: " ";
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(
+          rgba(18, 16, 16, 0) 50%,
+          rgba(0, 0, 0, 0.1) 50%
+        ), linear-gradient(
+          90deg,
+          rgba(255, 0, 0, 0.03),
+          rgba(0, 255, 0, 0.01),
+          rgba(0, 0, 255, 0.03)
+        );
+        z-index: 50;
+        background-size: 100% 2px, 3px 100%;
+        pointer-events: none;
+      }
+
+      .crt-flicker {
+        animation: flicker 0.15s infinite;
+      }
+
+      @keyframes flicker {
+        0% { opacity: 0.98; }
+        50% { opacity: 0.95; }
+        100% { opacity: 0.98; }
       }
     </style>
   <script type="importmap">
