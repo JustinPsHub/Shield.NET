@@ -70,12 +70,12 @@ flowchart TD
     classDef backend fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef frontend fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
 
-    subgraph Client [Client Side (Verification Dashboard)]
+    subgraph Client ["Client Side (Verification Dashboard)"]
         React[⚛️ React App]:::frontend
         ClientHttp[HTTP Client]:::frontend
     end
 
-    subgraph Server [Server Side (Shield.NET.Core)]
+    subgraph Server ["Server Side (Shield.NET.Core)"]
         API[ASP.NET Core API]:::backend
         Middleware[🛡️ Shield Middleware]:::backend
         Logic{{Logic Engine}}:::backend
